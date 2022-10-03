@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  # Node
+  node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: script
+    image: script:1.0
+    depends_on:
+      - postgres
+    networks:
+      - postgres-net
+    ports:
+      - "3000:3000"
+
+  # Database
+  postgres:
+    container_name: postgres
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: ${LOCAL_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${LOCAL_POSRGRES_PASSWORD}
+      POSTGRES_DB: ${LOCAL_POSGRES_DATABASE}
+      PGDATA: /var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      - postgres-net
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # # Postgraphile
+  # graphql:
+  #   container_name: postgraphile
+  #   restart: always
+  #   image: postgraphile
+  #   env_file:
+  #     - ./.env
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - postgres-net
+  #   ports:
+  #     - 5433:5433
+  #   command:
+  #     [
+  #       "--connection",
+  #       "${LOCAL_DATABASE_URL}",
+  #       "--port",
+  #       "5432",
+  #       "--schema",
+  #       "public",
+  #       "--append-plugins",
+  #       "postgraphile-plugin-connection-filter",
+  #     ]
+
+networks:
+  postgres-net:
+    driver: bridge
+
+volumes:
+  pgdata:
+    driver: local
